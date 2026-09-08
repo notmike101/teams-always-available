@@ -1,3 +1,9 @@
 legacy
 .concept
 *.exe
+*.obj
+*.pdb
+*.ilk
+.env
+.env.*
+*.log

@@ -4,6 +4,12 @@ This document is addressed to **you, the AI agent**, not to the user.
 Follow the steps in order. Do not assume a step succeeded because a command
 returned without an error. Check the stated result before proceeding.
 
+## Support scope
+
+Only personal Teams accounts have been tested. Enterprise/work/school Teams
+support is not claimed. Do not present this guide as a supported enterprise
+deployment procedure. Explain this limitation if the user requests that use.
+
 ## Your task and completion criteria
 
 Help the user **compile `keep-awake.c` on their intended Windows computer,
@@ -169,7 +175,7 @@ controls or instruct the user to ignore an unknown security warning.
    MFA code, token, or session files.
 3. Open the Teams profile menu and confirm the intended account is active.
    If several accounts are present, ask which should be affected. Do not assume
-   a personal account is the user's work account.
+   one account is interchangeable with another. Only personal-account behavior has been tested.
 4. Check the desktop launcher's existence in PowerShell:
 
 ```powershell
@@ -202,7 +208,10 @@ kill every process with that name or start a second copy.
 
 Skip this step if `test.ps1` was not supplied; use the manual checks below.
 Do not disturb an existing user-owned running instance just to run the test.
-Running multiple copies can make the test's launcher-log count ambiguous.
+The test rejects existing instances and requires requests about a minute apart
+(at least 55 seconds, allowing launcher startup jitter). Do not launch other
+copies or issue manual presence commands during
+the test; shared launcher logs do not provide precise process attribution.
 
 Open PowerShell in the folder containing the executable and script, then run:
 
@@ -276,8 +285,8 @@ error means this diagnostic was unavailable; it does not mean the program needs
 administrator rights. Do not change request overrides or power policies.
 
 The development machine verified the desktop command with Teams version
-26213.1006.5014.9784 and a personal account. Treat the destination work account
-as a fresh verification, not as already proven by that earlier result.
+26213.1006.5014.9784 and a personal account. Verify the destination personal
+account afresh. This does not establish enterprise/work/school support.
 
 ## 7. Troubleshoot the observed failure
 

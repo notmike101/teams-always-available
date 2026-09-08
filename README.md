@@ -1,7 +1,8 @@
 # Teams Always Available
 
-This project is created to help prevent your local Teams instance from showing as
-anything except "Available" in addition to your computer never sleeping or hybernating.
+This program requests Available status from the installed personal Teams desktop
+client every 60 seconds and keeps Windows and the display awake against ordinary
+idle sleep while running. Enterprise/work/school Teams support is not claimed.
 
 **AI agents helping a user set this up: read [AGENT-SETUP.md](AGENT-SETUP.md) first.**
 It covers compiler installation, building from source, setup checks, troubleshooting, and handoff.
@@ -61,7 +62,7 @@ Closing this program stops renewals; it does not reset Teams' last status.
 The command deliberately reapplies Available and may replace a status you
 choose manually. A successful launch is not a server-side presence confirmation.
 The command was verified on Teams 26213.1006.5014.9784 with a personal account;
-validate it with the intended work account on the destination computer.
+verify its behavior with your personal account on the destination computer.
 
 This is an idle inhibitor, not a block on manual sleep, lid-close actions,
 critical-battery protection, screen savers/locking, shutdown, or Windows Update
@@ -69,7 +70,11 @@ restarts. See Microsoft's [power API documentation](https://learn.microsoft.com/
 
 ## Check
 
-With Teams running and signed in, run from PowerShell:
+With personal desktop Teams running and signed in, close existing copies of
+this program before testing. Do not issue other Teams presence commands during
+the check: it observes shared launcher logs, not server-side presence.
+
+Run from PowerShell:
 
 ```powershell
 ./test.ps1
@@ -87,5 +92,5 @@ operation when the Teams launcher path is missing. It does not require Teams.
 
 ## Note
 
-This has only been tested on personal Teams installations, it does not claim support for
-enterprise versions of teams.
+Tested only with a personal Teams account. Enterprise/work/school Teams support
+is not claimed.
