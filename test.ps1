@@ -1,18 +1,19 @@
 param(
-    [string]$Executable = "$PSScriptRoot/keep-awake.exe",
-    [int]$TimeoutSeconds = 75
+    [string]$Executable = "$PSScriptRoot/build/app.exe",
+    # Cold startup consumes the first cycle before launcher-to-server dispatches begin.
+    [int]$TimeoutSeconds = 150
 )
 $ErrorActionPreference = 'Stop'
-# Integration check: catches missing or broken periodic Teams dispatch.
-# Requires installed, signed-in desktop Teams. Sets its status to Available.
-$names = @('keep-awake', [IO.Path]::GetFileNameWithoutExtension($Executable)) | Select-Object -Unique
-if (Get-Process -Name $names -ErrorAction SilentlyContinue) {
-    throw 'Close existing keep-awake instances before testing.'
+$Executable = (Resolve-Path $Executable).Path
+if (Get-Process -Name app -ErrorAction SilentlyContinue | Where-Object Path -eq $Executable) {
+    throw 'Close the existing controller before testing.'
 }
 $logs = "$env:LOCALAPPDATA/Packages/MSTeams_8wekyb3d8bbwe/LocalCache/Microsoft/MSTeams/Logs"
-if (!(Test-Path $logs)) { throw 'Start desktop Teams before running this check.' }
+if (!(Test-Path $logs)) { throw 'Start and sign into desktop Teams before running this check.' }
+$stdout = "$PSScriptRoot/build/integration.stdout.log"
+$stderr = "$PSScriptRoot/build/integration.stderr.log"
 $started = Get-Date
-$process = Start-Process -FilePath $Executable -WindowStyle Hidden -PassThru
+$process = Start-Process -FilePath $Executable -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
 try {
     do {
         if ($process.WaitForExit(500)) { throw "Program exited early: $($process.ExitCode)" }
@@ -20,17 +21,16 @@ try {
             Where-Object CreationTime -ge $started |
             Where-Object {
                 $text = Get-Content $_.FullName -Raw
-                $text -match '"cmd_line":"--set-presence-to-available"' -and
-                $text -match 'Message sent to server'
+                $text -match '"cmd_line":"--set-presence-to-available"' -and $text -match 'Message sent to server'
             } | Sort-Object CreationTime)
-        if ($dispatches.Count -ge 2 -and
-            # Allow launcher startup jitter around the program's 60-second interval.
+        $hooks = @(Select-String -Path $stdout -Pattern 'Idle hook confirmed: [1-9][0-9]* module')
+        if ($dispatches.Count -ge 2 -and $hooks.Count -ge 2 -and
             ($dispatches[-1].CreationTime - $dispatches[0].CreationTime).TotalSeconds -ge 55) {
-            Write-Output 'PASS: Teams received the initial command and a periodic renewal; program remained running.'
+            Write-Output 'PASS: two Teams dispatches and two confirmed hook cycles; controller remained running.'
             return
         }
     } while ((Get-Date) -lt $started.AddSeconds($TimeoutSeconds))
-    throw "Expected two Teams dispatches; observed $($dispatches.Count)."
+    throw "Expected two dispatches and hook cycles; observed $($dispatches.Count) dispatches, $($hooks.Count) hooks. See $stdout and $stderr."
 } finally {
     if (!$process.HasExited) { Stop-Process -Id $process.Id }
     $process.Dispose()

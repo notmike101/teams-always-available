@@ -2,6 +2,10 @@ legacy
 .concept
 *.exe
 *.obj
+build/
+*.dll
+*.lib
+*.exp
 *.pdb
 *.ilk
 .env
